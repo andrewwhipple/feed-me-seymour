@@ -38,6 +38,80 @@ class FeedError extends React.Component {
   }
 }
 
+
+class EditableLine extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      editable: false,
+      newEntry: '',
+    }
+
+    this.handleUpdateButtonClick = this.handleUpdateButtonClick.bind(this);
+    this.handleTextFormChange = this.handleTextFormChange.bind(this);
+    this.handleEditButtonClick = this.handleEditButtonClick.bind(this);
+
+
+
+  }
+
+  handleEditButtonClick(event) {
+    console.log("Clicked!");
+    this.setState({editable: true});
+  }
+
+  handleUpdateButtonClick(event) {
+    event.preventDefault();
+
+    var newJSON = JSON.parse(JSON.stringify(this.props.feedJSON));
+    
+    
+    /*
+    newJSON.rss.channel.title._text = this.state.newFeedTitle;
+    console.log(newJSON);
+    this.props.updateFeedJSON(newJSON);
+    this.setState({
+      editable: false,
+      newFeedTitle: '',
+    });
+    */
+  }
+
+  handleTextFormChange(event) {
+    this.setState({newEntry: event.target.value});
+  }
+
+  render() {
+    try {
+      let currentEntry = 'meow'; //this.props.feedJSON.rss.channel.title._text;
+      //this.setState({feedTitle: feedTitle});
+      return (
+        <div>
+          <p>{this.props.label}</p>
+          <p>{currentEntry}</p>
+          {this.state.editable ? (
+            <form onSubmit={this.handleUpdateButtonClick}>
+              <input type="text" onChange={this.handleTextFormChange}></input>
+              <input type="submit" value="Submit" />
+            </form>
+          ) : (
+            <button type="button" onClick={this.handleEditButtonClick}>Edit</button>
+          )}
+          
+          
+        </div>
+      );
+
+    } catch (error) {
+      return (
+        <div className="no-show"></div>
+      );
+    }
+  }
+
+}
+
+
 class FeedTitle extends React.Component {
   constructor(props) {
     super(props);
@@ -61,6 +135,8 @@ class FeedTitle extends React.Component {
 
     var newJSON = JSON.parse(JSON.stringify(this.props.feedJSON));
     newJSON.rss.channel.title._text = this.state.newFeedTitle;
+    let key = 'rss.channel.title._text';
+    console.log(newJSON[[key]]);
     console.log(newJSON);
     this.props.updateFeedJSON(newJSON);
     this.setState({
@@ -74,9 +150,8 @@ class FeedTitle extends React.Component {
   }
 
   render() {
-    try {
+    if (this.props.feedJSON && this.props.feedJSON.rss && this.props.feedJSON.rss.channel && this.props.feedJSON.rss.channel.title._text) {
       let feedTitle = this.props.feedJSON.rss.channel.title._text;
-      //this.setState({feedTitle: feedTitle});
       return (
         <div>
           <p>Title: </p>
@@ -93,8 +168,7 @@ class FeedTitle extends React.Component {
           
         </div>
       );
-
-    } catch (error) {
+    } else {
       return (
         <div className="no-show"></div>
       );
