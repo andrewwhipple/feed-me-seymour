@@ -123,18 +123,25 @@ class ChannelAttributes extends React.Component {
 
 
   render() {
-    console.log("CHannel attribute rendered!");
+
+    var attributeLines = []
+
+    for (var attrKey in this.state.channelJSON) {
+      console.log(attrKey);
+
+      if (attrKey !== "item") {
+        var label = attrKey + ": ";
+
+        attributeLines.push(<EditableLine key={attrKey + "_component_key"} label={label} currentEntry={this.state.channelJSON[attrKey]._text} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey} />)
+      }
+
+      //title case: string.charAt[0].toUpperCase()
+    }
+
 
     return (
         <div>
-          <p>Meow!</p>
-
-          {this.state.channelJSON.title &&
-            <EditableLine label="Title: " currentEntry={this.state.channelJSON.title._text} updateFeedJSON={this.updateChannelJSON} fieldKey='title' />
-          }
-          {this.state.channelJSON.link &&
-            <EditableLine label="Link: " currentEntry={this.state.channelJSON.link._text} updateFeedJSON={this.updateChannelJSON} fieldKey='link' />
-          }
+          {attributeLines}
         </div>
  
     );
