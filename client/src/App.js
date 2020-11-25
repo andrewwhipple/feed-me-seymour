@@ -104,14 +104,18 @@ class EditableLine extends React.Component {
 
 class ChannelAttributes extends React.Component {
 
-  updateEntry(newEntry) {
-    
-  }  
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      channelJSON: this.props.channelJSON
+    }
+  }
 
   render() {
 
     return (
-        <EditableLine label="Title: " currentEntry={this.props.feedJSON.rss.channel.title._text} updateEntry={this.updateEntry}/>
+        <p>Meow!</p>
     );
   }
 }
@@ -203,6 +207,12 @@ class FeedBuilder extends React.Component {
         
         {title}
         {link}
+
+
+        {this.state.feedJSON.rss && this.state.feedJSON.rss.channel &&
+          <ChannelAttributes channelJSON={this.state.feedJSON.rss.channel}/>
+        }
+        
 
       </div> 
     );
