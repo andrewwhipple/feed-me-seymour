@@ -106,24 +106,43 @@ class ChannelAttributes extends React.Component {
 
   constructor(props) {
     super(props);
-
+    
     this.state = {
       channelJSON: this.props.channelJSON
     }
+
+    this.updateChannelJSON = this.updateChannelJSON.bind(this);
   }
 
+  updateChannelJSON(newEntry, fieldKey) {
+    var newChannelJSON = this.state.channelJSON;
+    newChannelJSON[fieldKey]._text = newEntry;
+    this.setState({channelJSON: newChannelJSON});
+    
+  }
+
+
   render() {
+    console.log("CHannel attribute rendered!");
 
     return (
-        <p>Meow!</p>
+        <div>
+          <p>Meow!</p>
+
+          {this.state.channelJSON.title &&
+            <EditableLine label="Title: " currentEntry={this.state.channelJSON.title._text} updateFeedJSON={this.updateChannelJSON} fieldKey='title' />
+          }
+          {this.state.channelJSON.link &&
+            <EditableLine label="Link: " currentEntry={this.state.channelJSON.link._text} updateFeedJSON={this.updateChannelJSON} fieldKey='link' />
+          }
+        </div>
+ 
     );
   }
 }
 
 class FeedBuilder extends React.Component {
   defaultState = {
-    feedTitle: '',
-    feedLink: '',
     feedUrl: '',
     errorMessage: '',
     isError: false,
@@ -133,8 +152,6 @@ class FeedBuilder extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      feedTitle: '',
-      feedLink: '',
       feedUrl: '',
       errorMessage: '',
       isError: false,
@@ -143,14 +160,9 @@ class FeedBuilder extends React.Component {
 
     this.handleFeedSubmit = this.handleFeedSubmit.bind(this);
     this.handleFeedFormChange = this.handleFeedFormChange.bind(this);
-    this.updateFeedJSON = this.updateFeedJSON.bind(this);
   };
 
-  updateFeedJSON(newEntry, fieldKey) {
-    var newFeedJSON = JSON.parse(JSON.stringify(this.state.feedJSON));
-    newFeedJSON.rss.channel[fieldKey]._text = newEntry;
-    this.setState({feedJSON: newFeedJSON});
-  }
+ 
 
   handleFeedSubmit(event) {
     event.preventDefault();
@@ -186,18 +198,7 @@ class FeedBuilder extends React.Component {
     this.setState({feedUrl: event.target.value});
   }
 
- 
-
   render() {
-    var title;
-    var link;
-    if (this.state.feedJSON && this.state.feedJSON.rss && this.state.feedJSON.rss.channel && this.state.feedJSON.rss.channel.title) {
-      title = <EditableLine label="Title: " currentEntry={this.state.feedJSON.rss.channel.title._text} updateFeedJSON={this.updateFeedJSON} fieldKey='title' />
-    } 
-
-    if (this.state.feedJSON && this.state.feedJSON.rss && this.state.feedJSON.rss.channel && this.state.feedJSON.rss.channel.link) {
-      link = <EditableLine label="Link: " currentEntry={this.state.feedJSON.rss.channel.link._text} updateFeedJSON={this.updateFeedJSON} fieldKey='link' />
-    } 
 
     return (
       <div>
@@ -205,10 +206,6 @@ class FeedBuilder extends React.Component {
       
         <FeedError isError={this.state.isError} errorMessage={this.state.errorMessage} />
         
-        {title}
-        {link}
-
-
         {this.state.feedJSON.rss && this.state.feedJSON.rss.channel &&
           <ChannelAttributes channelJSON={this.state.feedJSON.rss.channel}/>
         }
