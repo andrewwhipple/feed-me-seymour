@@ -63,18 +63,11 @@ class EditableLine extends React.Component {
   handleUpdateButtonClick(event) {
     event.preventDefault();
 
-    var newJSON = JSON.parse(JSON.stringify(this.props.feedJSON));
-    
-    
-    /*
-    newJSON.rss.channel.title._text = this.state.newFeedTitle;
-    console.log(newJSON);
-    this.props.updateFeedJSON(newJSON);
+    this.props.updateFeedJSON(this.state.newEntry, this.props.fieldKey);
     this.setState({
       editable: false,
-      newFeedTitle: '',
+      newEntry: '',
     });
-    */
   }
 
   handleTextFormChange(event) {
@@ -82,83 +75,14 @@ class EditableLine extends React.Component {
   }
 
   render() {
-    try {
-      let currentEntry = 'meow'; //this.props.feedJSON.rss.channel.title._text;
-      //this.setState({feedTitle: feedTitle});
+    if (this.props.currentEntry) {
       return (
         <div>
           <p>{this.props.label}</p>
-          <p>{currentEntry}</p>
+          <p>{this.props.currentEntry}</p>
           {this.state.editable ? (
             <form onSubmit={this.handleUpdateButtonClick}>
               <input type="text" onChange={this.handleTextFormChange}></input>
-              <input type="submit" value="Submit" />
-            </form>
-          ) : (
-            <button type="button" onClick={this.handleEditButtonClick}>Edit</button>
-          )}
-          
-          
-        </div>
-      );
-
-    } catch (error) {
-      return (
-        <div className="no-show"></div>
-      );
-    }
-  }
-
-}
-
-
-class FeedTitle extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      editable: false,
-      newFeedTitle: '',
-    }
-
-    this.handleEditButtonClick = this.handleEditButtonClick.bind(this);
-    this.handleUpdateButtonClick = this.handleUpdateButtonClick.bind(this);
-    this.handleTitleFormChange = this.handleTitleFormChange.bind(this);
-  }
-  
-  handleEditButtonClick(event) {
-    console.log("Clicked!");
-    this.setState({editable: true});
-  }
-
-  handleUpdateButtonClick(event) {
-    event.preventDefault();
-
-    var newJSON = JSON.parse(JSON.stringify(this.props.feedJSON));
-    newJSON.rss.channel.title._text = this.state.newFeedTitle;
-    let key = 'rss.channel.title._text';
-    console.log(newJSON[[key]]);
-    console.log(newJSON);
-    this.props.updateFeedJSON(newJSON);
-    this.setState({
-      editable: false,
-      newFeedTitle: '',
-    });
-  }
-
-  handleTitleFormChange(event) {
-    this.setState({newFeedTitle: event.target.value});
-  }
-
-  render() {
-    if (this.props.feedJSON && this.props.feedJSON.rss && this.props.feedJSON.rss.channel && this.props.feedJSON.rss.channel.title._text) {
-      let feedTitle = this.props.feedJSON.rss.channel.title._text;
-      return (
-        <div>
-          <p>Title: </p>
-          <p>{feedTitle}</p>
-          {this.state.editable ? (
-            <form onSubmit={this.handleUpdateButtonClick}>
-              <input type="text" onChange={this.handleTitleFormChange}></input>
               <input type="submit" value="Submit" />
             </form>
           ) : (
@@ -174,11 +98,28 @@ class FeedTitle extends React.Component {
       );
     }
   }
+
+}
+
+
+class ChannelAttributes extends React.Component {
+
+  updateEntry(newEntry) {
+    
+  }  
+
+  render() {
+
+    return (
+        <EditableLine label="Title: " currentEntry={this.props.feedJSON.rss.channel.title._text} updateEntry={this.updateEntry}/>
+    );
+  }
 }
 
 class FeedBuilder extends React.Component {
   defaultState = {
     feedTitle: '',
+    feedLink: '',
     feedUrl: '',
     errorMessage: '',
     isError: false,
@@ -189,6 +130,7 @@ class FeedBuilder extends React.Component {
     super(props);
     this.state = {
       feedTitle: '',
+      feedLink: '',
       feedUrl: '',
       errorMessage: '',
       isError: false,
@@ -200,7 +142,9 @@ class FeedBuilder extends React.Component {
     this.updateFeedJSON = this.updateFeedJSON.bind(this);
   };
 
-  updateFeedJSON(newFeedJSON) {
+  updateFeedJSON(newEntry, fieldKey) {
+    var newFeedJSON = JSON.parse(JSON.stringify(this.state.feedJSON));
+    newFeedJSON.rss.channel[fieldKey]._text = newEntry;
     this.setState({feedJSON: newFeedJSON});
   }
 
@@ -238,16 +182,27 @@ class FeedBuilder extends React.Component {
     this.setState({feedUrl: event.target.value});
   }
 
-
+ 
 
   render() {
+    var title;
+    var link;
+    if (this.state.feedJSON && this.state.feedJSON.rss && this.state.feedJSON.rss.channel && this.state.feedJSON.rss.channel.title) {
+      title = <EditableLine label="Title: " currentEntry={this.state.feedJSON.rss.channel.title._text} updateFeedJSON={this.updateFeedJSON} fieldKey='title' />
+    } 
+
+    if (this.state.feedJSON && this.state.feedJSON.rss && this.state.feedJSON.rss.channel && this.state.feedJSON.rss.channel.link) {
+      link = <EditableLine label="Link: " currentEntry={this.state.feedJSON.rss.channel.link._text} updateFeedJSON={this.updateFeedJSON} fieldKey='link' />
+    } 
+
     return (
       <div>
         <FeedUrlForm handleFeedSubmit={this.handleFeedSubmit} handleFeedFormChange={this.handleFeedFormChange}/>
       
         <FeedError isError={this.state.isError} errorMessage={this.state.errorMessage} />
-
-        <FeedTitle feedJSON={this.state.feedJSON} updateFeedJSON={this.updateFeedJSON} />
+        
+        {title}
+        {link}
 
       </div> 
     );
