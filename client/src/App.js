@@ -139,7 +139,7 @@ class ChannelAttributes extends React.Component {
         <div>
           {attributeLines}
           <hr/>
-          <ItemAttributes itemJSON={this.state.channelJSON.item[0]}/>
+          <ItemList itemArray={this.state.channelJSON.item}/>
         </div>
     );
   }
@@ -148,6 +148,37 @@ class ChannelAttributes extends React.Component {
 class ItemList extends React.Component {
   // Given rss.channel.item array, renders a list of ItemAttributes
   // This is also where the capability to add a new item should live
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      itemArray: this.props.itemArray
+    }
+
+    this.updateItemArray = this.updateItemArray.bind(this);
+
+  }
+
+  updateItemArray() {
+    console.log('updateItemArray() not written yet!');
+  }
+
+  render() {
+    var itemAttributesArray = [];
+    for (var item in this.state.itemArray) {
+      console.log(this.state.itemArray[item]);
+      itemAttributesArray.push(<ItemAttributes itemJSON={this.state.itemArray[item]}/>);
+    }
+
+
+    return(
+      <div>
+        {itemAttributesArray}
+      </div>
+    )
+  }
+
 }
 
 class ItemAttributes extends React.Component {
@@ -208,15 +239,11 @@ class ItemAttributes extends React.Component {
         attributeLines.push(<EditableLine key={attrKey + "_item_key_" + this.state.itemJSON.guid._text} label={label} currentEntry={this.state.itemJSON[attrKey]._text || this.state.itemJSON[attrKey]._cdata} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey} />)
       }
       
-
-
-
-
-      // note: this does not render all the attributes of a field (such as both the length and url of the enclosure tag)
     }
 
     return (
       <div>
+        <hr/>
         {attributeLines}
       </div>
 
