@@ -118,9 +118,7 @@ class ChannelAttributes extends React.Component {
     var newChannelJSON = this.state.channelJSON;
     newChannelJSON[fieldKey]._text = newEntry;
     this.setState({channelJSON: newChannelJSON});
-    
   }
-
 
   render() {
 
@@ -134,18 +132,99 @@ class ChannelAttributes extends React.Component {
 
         attributeLines.push(<EditableLine key={attrKey + "_component_key"} label={label} currentEntry={this.state.channelJSON[attrKey]._text} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey} />)
       }
-
-      //title case: string.charAt[0].toUpperCase()
     }
 
 
     return (
         <div>
           {attributeLines}
+          <hr/>
+          <ItemAttributes itemJSON={this.state.channelJSON.item[0]}/>
         </div>
- 
     );
   }
+}
+
+class ItemList extends React.Component {
+  // Given rss.channel.item array, renders a list of ItemAttributes
+  // This is also where the capability to add a new item should live
+}
+
+class ItemAttributes extends React.Component {
+  // Given an Item JSON from the rss.channel.item array, renders a list of EditableLines for each attribute in the item
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      itemJSON: this.props.itemJSON
+    }
+
+    this.updateItemJSON = this.updateItemJSON.bind(this);
+  }
+
+  updateItemJSON(newEntry, fieldKey) {
+    var newItemJSON = this.state.itemJSON;
+
+    if (fieldKey === 'enclosure.url') {
+      newItemJSON.enclosure._attributes.url = newEntry;
+    } else if (fieldKey === 'enclosure.length') {
+      newItemJSON.enclosure._attributes.length = newEntry;
+    } else if (fieldKey === 'enclosure.type') {
+      newItemJSON.enclosure._attributes.type = newEntry;
+    } else if (fieldKey === 'guid.isPermalink') {
+      newItemJSON.guid._attributes.isPermalink = newEntry;
+    } else {
+      newItemJSON[fieldKey]._text = newEntry;
+    }
+
+
+    
+    this.setState({itemJSON: newItemJSON});
+  }
+
+  render() {
+    var attributeLines = [];
+
+    for (var attrKey in this.state.itemJSON) {
+      console.log(attrKey);
+
+      if (attrKey === 'enclosure') {
+        var label = attrKey + " - ";
+
+        attributeLines.push(<EditableLine key={attrKey + "url_item_key_" + this.state.itemJSON.guid._text} label={label + 'url: '} currentEntry={this.state.itemJSON[attrKey]._attributes.url} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey + '.url'} />)
+        attributeLines.push(<EditableLine key={attrKey + "length_item_key_" + this.state.itemJSON.guid._text} label={label + 'length: '} currentEntry={this.state.itemJSON[attrKey]._attributes.length} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey + '.length'} />)
+        attributeLines.push(<EditableLine key={attrKey + "type_item_key_" + this.state.itemJSON.guid._text} label={label + 'type: '} currentEntry={this.state.itemJSON[attrKey]._attributes.type} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey + '.type'} />)
+
+      } else if (attrKey === 'guid') {
+
+        var label = attrKey + " - ";
+
+        attributeLines.push(<EditableLine key={attrKey + "isPermalink_item_key_" + this.state.itemJSON.guid._text} label={label + 'isPermalink: '} currentEntry={this.state.itemJSON[attrKey]._attributes.isPermalink} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey + '.isPermalink'} />)
+        attributeLines.push(<EditableLine key={attrKey + "text_item_key_" + this.state.itemJSON.guid._text} label={attrKey + ': '} currentEntry={this.state.itemJSON[attrKey]._text} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey} />)
+
+      } else {
+        var label = attrKey + ": ";
+        attributeLines.push(<EditableLine key={attrKey + "_item_key_" + this.state.itemJSON.guid._text} label={label} currentEntry={this.state.itemJSON[attrKey]._text || this.state.itemJSON[attrKey]._cdata} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey} />)
+      }
+      
+
+
+
+
+      // note: this does not render all the attributes of a field (such as both the length and url of the enclosure tag)
+    }
+
+    return (
+      <div>
+        {attributeLines}
+      </div>
+
+    )
+
+
+  }
+
 }
 
 class FeedBuilder extends React.Component {
