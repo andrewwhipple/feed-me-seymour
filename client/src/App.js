@@ -17,7 +17,7 @@ An EditableLine renders whatever is currently stored in the state, and gives the
 Rendering all of this works! Next step is to:
 - (X) make sure state is appropriately bubbled so that changes to individual lines could theoretically be saved to a new feed
 - (X) once that works, create XML of the new saved feed
-- once that works, figure out how to provide that in a file that can be downloaded
+- (x) once that works, figure out how to provide that in a file that can be downloaded
 - additionally, support adding new items to the list of items
 - similarly, support adding new fields if they're missing
 - and finally, allow creating new feeds from scratchs
@@ -344,6 +344,25 @@ class FeedBuilder extends React.Component {
       res.text().then((xmlResponse) => {
         if(res.ok) {
           console.log(xmlResponse);
+
+          var blob = new Blob([xmlResponse], { type: 'text/xml'});
+          
+          var url = window.URL.createObjectURL(blob);
+        
+          var link = document.createElement('a');
+
+          console.log(link);
+          link.download = 'feed.xml';
+          link.href = url;
+
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          window.URL.revokeObjectURL(url);
+
+
+
         } else {
           this.setState({
             errorMessage: xmlResponse,
@@ -366,7 +385,7 @@ class FeedBuilder extends React.Component {
           <div>
             <ChannelAttributes channelJSON={this.state.feedJSON.rss.channel}/>
             <hr/>
-            <button type="button" onClick={this.handleXMLEncodeSubmit}>Encode as XML</button>
+            <button type="button" onClick={this.handleXMLEncodeSubmit}>Download as XML</button>
           </div>
         }
         

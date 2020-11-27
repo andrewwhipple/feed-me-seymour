@@ -48,7 +48,7 @@ app.post('/encode_feed/', (req, res) => {
   let xml_feed;
   try {
     xml_feed = xml_js.js2xml(req.body, {spaces: 2, compact: true});
-    console.log(xml_feed);
+    res.attachment('feed.xml');
     res.send(xml_feed);
 
   } catch(error) {
