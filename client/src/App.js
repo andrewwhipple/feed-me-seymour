@@ -1,8 +1,28 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
+import fetch from 'node-fetch';
 
+/*
+Overall hierarchy is a FeedBuilder, composed of a FeedUrlForm (to submit a url of a feed), FeedError (to display any errors that may arise), and a ChannelAttributes
 
+ChannelAttributes renders a bunch of EditableLines for any channel-level attributes, as well as an ItemList for any of the items in the feed
+
+An ItemList renders an ItemAttribute for each item in the feed
+
+An ItemAttribute renders a bunch of EditableLines for each attribute in the item
+
+An EditableLine renders whatever is currently stored in the state, and gives the option to replace it with arbitrary text
+
+Rendering all of this works! Next step is to:
+- (X) make sure state is appropriately bubbled so that changes to individual lines could theoretically be saved to a new feed
+- (X) once that works, create XML of the new saved feed
+- once that works, figure out how to provide that in a file that can be downloaded
+- additionally, support adding new items to the list of items
+- similarly, support adding new fields if they're missing
+- and finally, allow creating new feeds from scratchs
+
+*/
 
 class FeedUrlForm extends React.Component {
   
@@ -50,8 +70,6 @@ class EditableLine extends React.Component {
     this.handleUpdateButtonClick = this.handleUpdateButtonClick.bind(this);
     this.handleTextFormChange = this.handleTextFormChange.bind(this);
     this.handleEditButtonClick = this.handleEditButtonClick.bind(this);
-
-
 
   }
 
@@ -273,6 +291,7 @@ class FeedBuilder extends React.Component {
 
     this.handleFeedSubmit = this.handleFeedSubmit.bind(this);
     this.handleFeedFormChange = this.handleFeedFormChange.bind(this);
+    this.handleXMLEncodeSubmit = this.handleXMLEncodeSubmit.bind(this);
   };
 
  
@@ -311,6 +330,30 @@ class FeedBuilder extends React.Component {
     this.setState({feedUrl: event.target.value});
   }
 
+  handleXMLEncodeSubmit(event) {
+    event.preventDefault();
+
+    fetch('/encode_feed/', {
+      method: 'POST',
+      body: JSON.stringify(this.state.feedJSON),
+      headers: {
+        "Content-type": "application/json"
+      }
+    }).then((res) => {
+      console.log(res);
+      res.text().then((xmlResponse) => {
+        if(res.ok) {
+          console.log(xmlResponse);
+        } else {
+          this.setState({
+            errorMessage: xmlResponse,
+            isError: true
+          });
+        }
+      })
+    }).catch(() => console.error('Error in fetch the /encode_feed/ route'))
+  }
+
   render() {
 
     return (
@@ -320,9 +363,14 @@ class FeedBuilder extends React.Component {
         <FeedError isError={this.state.isError} errorMessage={this.state.errorMessage} />
         
         {this.state.feedJSON.rss && this.state.feedJSON.rss.channel &&
-          <ChannelAttributes channelJSON={this.state.feedJSON.rss.channel}/>
+          <div>
+            <ChannelAttributes channelJSON={this.state.feedJSON.rss.channel}/>
+            <hr/>
+            <button type="button" onClick={this.handleXMLEncodeSubmit}>Encode as XML</button>
+          </div>
         }
         
+
 
       </div> 
     );
