@@ -22,7 +22,7 @@ Rendering all of this works! Next step is to:
 - similarly, support adding new fields if they're missing
 - (x) and finally, allow creating new feeds from scratchs
 - (x) fix rendering of nested things in the category level (the same way it works for item-level nests)
-- re-order how things render when you create a new feed or new item
+- (x) re-order how things render when you create a new feed or new item
 
 */
 
@@ -219,7 +219,16 @@ class ItemList extends React.Component {
   addNewItem() {
     //console.log("Add new item clicked for : " + this.state.itemArray[0]);
     var newBlankItem = {
+      'title': {
+        '_text': ''
+      },
+      'itunes:subtitle': {
+        '_text': ''
+      },
       'description': {
+        '_cdata': ''
+      },
+      'itunes:summary': {
         '_cdata': ''
       },
       'enclosure': {
@@ -241,16 +250,7 @@ class ItemList extends React.Component {
       'itunes:duration': {
         '_text': ''
       },
-      'itunes:subtitle': {
-        '_text': ''
-      },
-      'itunes:summary': {
-        '_cdata': ''
-      },
       'pubDate': {
-        '_text': ''
-      },
-      'title': {
         '_text': ''
       }
     };
@@ -467,50 +467,27 @@ class FeedBuilder extends React.Component {
           'xmlns:itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd'
         },
         'channel': {
-          'copyright': {
+          'title': {
+            '_text': ''
+          },
+          'language': {
+            '_text': 'en-us'
+          },
+          'link': {
             '_text': ''
           },
           'description': {
             '_text': ''
           },
-          'item': [
-            {
-              'description': {
-                '_cdata': ''
-              },
-              'enclosure': {
-                '_attributes': {
-                  'length': '',
-                  'type': '',
-                  'url': ''
-                }
-              },
-              'guid': {
-                '_attributes': {
-                  'isPermalink': ''
-                },
-                '_text': ''
-              },
-              'itunes:author': {
-                '_text': ''
-              },
-              'itunes:duration': {
-                '_text': ''
-              },
-              'itunes:subtitle': {
-                '_text': ''
-              },
-              'itunes:summary': {
-                '_cdata': ''
-              },
-              'pubDate': {
-                '_text': ''
-              },
-              'title': {
-                '_text': ''
-              }
-            }
-          ],
+          'itunes:subtitle': {
+            '_text': ''
+          },
+          'itunes:summary': {
+            '_text': ''
+          },
+          'copyright': {
+            '_text': ''
+          },
           'itunes:author': {
             '_text': ''
           },
@@ -537,21 +514,44 @@ class FeedBuilder extends React.Component {
               '_text': ''
             }
           },
-          'itunes:subtitle': {
-            '_text': ''
-          },
-          'itunes:summary': {
-            '_text': ''
-          },
-          'language': {
-            '_text': 'en-us'
-          },
-          'link': {
-            '_text': ''
-          },
-          'title': {
-            '_text': ''
-          }
+          'item': [
+            {
+              'title': {
+                '_text': ''
+              },
+              'itunes:subtitle': {
+                '_text': ''
+              },
+              'description': {
+                '_cdata': ''
+              },
+              'itunes:summary': {
+                '_cdata': ''
+              },
+              'enclosure': {
+                '_attributes': {
+                  'length': '',
+                  'type': '',
+                  'url': ''
+                }
+              },
+              'guid': {
+                '_attributes': {
+                  'isPermalink': ''
+                },
+                '_text': ''
+              },
+              'itunes:author': {
+                '_text': ''
+              },
+              'itunes:duration': {
+                '_text': ''
+              },
+              'pubDate': {
+                '_text': ''
+              }  
+            }
+          ]
         }
       }
     }
