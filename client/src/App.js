@@ -23,6 +23,8 @@ Rendering all of this works! Next step is to:
 - (x) and finally, allow creating new feeds from scratchs
 - (x) fix rendering of nested things in the category level (the same way it works for item-level nests)
 - (x) re-order how things render when you create a new feed or new item
+- (x) fix encoding of special characters in the xml
+- change category field to a dropdown
 
 */
 
@@ -415,10 +417,14 @@ class FeedBuilder extends React.Component {
 
   handleXMLEncodeSubmit(event) {
     event.preventDefault();
+    
+    var jsonToEncode = JSON.stringify(this.state.feedJSON);
+    jsonToEncode = jsonToEncode.replace(/ & /g, ' &amp; ');
+    console.log(jsonToEncode);
 
     fetch('/encode_feed/', {
       method: 'POST',
-      body: JSON.stringify(this.state.feedJSON),
+      body: jsonToEncode,
       headers: {
         "Content-type": "application/json"
       }
