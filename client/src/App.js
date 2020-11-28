@@ -18,9 +18,11 @@ Rendering all of this works! Next step is to:
 - (X) make sure state is appropriately bubbled so that changes to individual lines could theoretically be saved to a new feed
 - (X) once that works, create XML of the new saved feed
 - (x) once that works, figure out how to provide that in a file that can be downloaded
-- additionally, support adding new items to the list of items
+- (x) additionally, support adding new items to the list of items
 - similarly, support adding new fields if they're missing
-- and finally, allow creating new feeds from scratchs
+- (x) and finally, allow creating new feeds from scratchs
+- (x) fix rendering of nested things in the category level (the same way it works for item-level nests)
+- re-order how things render when you create a new feed or new item
 
 */
 
@@ -74,14 +76,14 @@ class EditableLine extends React.Component {
   }
 
   handleEditButtonClick(event) {
-    console.log("Handle edit button Clicked!");
+    //console.log("Handle edit button Clicked!");
     this.setState({editable: true});
   }
 
   handleUpdateButtonClick(event) {
     event.preventDefault();
 
-    this.props.updateFeedJSON(this.state.newEntry, this.props.fieldKey);
+    this.props.updateFeedJSON(this.state.newEntry, this.props.fieldKey, this.props.secondaryKey || undefined);
     this.setState({
       editable: false,
       newEntry: '',
@@ -132,9 +134,18 @@ class ChannelAttributes extends React.Component {
     this.updateChannelJSON = this.updateChannelJSON.bind(this);
   }
 
-  updateChannelJSON(newEntry, fieldKey) {
+  updateChannelJSON(newEntry, fieldKey, secondaryKey) {
     var newChannelJSON = this.state.channelJSON;
-    newChannelJSON[fieldKey]._text = newEntry;
+    //add support for editing itunes:category, itunes:image, and itunes:owner nesting
+    if (fieldKey === 'itunes:category') {
+      newChannelJSON[fieldKey][secondaryKey]._attributes.text = newEntry;
+    } else if (fieldKey === 'itunes:image') {
+      newChannelJSON[fieldKey]._attributes.href = newEntry;
+    } else if (fieldKey === 'itunes:owner'){
+      newChannelJSON[fieldKey][secondaryKey]._text = newEntry;
+    } else {
+      newChannelJSON[fieldKey]._text = newEntry;
+    }
     this.setState({channelJSON: newChannelJSON});
   }
 
@@ -143,12 +154,31 @@ class ChannelAttributes extends React.Component {
     var attributeLines = []
 
     for (var attrKey in this.state.channelJSON) {
-      console.log("Channel attrkey: " + attrKey);
 
+      //support rendering for itunes:category, itunes:image, itunes:owner
       if (attrKey !== "item") {
-        var label = attrKey + ": ";
+        if (attrKey === 'itunes:category') {
+          if (!Array.isArray(this.state.channelJSON[attrKey])) {
+            var newChannelJSON = this.state.channelJSON;
+            newChannelJSON[attrKey] = [this.state.channelJSON[attrKey]];
+            this.setState({channelJSON: newChannelJSON});
+          }
+          for (var categoryIndex in this.state.channelJSON[attrKey]) {
+            attributeLines.push(<EditableLine key={attrKey + '_' + categoryIndex + '_component_key'} label={attrKey + ' ' + categoryIndex + ': '} currentEntry={this.state.channelJSON['itunes:category'][categoryIndex]._attributes.text + ' '} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey} secondaryKey={categoryIndex}/>)
+          }
+        } else if (attrKey === 'itunes:image') {
+          attributeLines.push(<EditableLine key={attrKey + '_component_key'} label={attrKey + ' - href: '} currentEntry={this.state.channelJSON[attrKey]._attributes.href || ' '} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey}/>);
+        } else if (attrKey === 'itunes:owner') {
+          for (var itunesOwnerElement in this.state.channelJSON[attrKey]) {
+            console.log(itunesOwnerElement);
+            attributeLines.push(<EditableLine key={attrKey + '_' + itunesOwnerElement + '_component_key'} label={attrKey + ' - ' + itunesOwnerElement + ': '} currentEntry={this.state.channelJSON[attrKey][itunesOwnerElement]._text || ' '} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey} secondaryKey={itunesOwnerElement}/>);
+          }
 
-        attributeLines.push(<EditableLine key={attrKey + "_component_key"} label={label} currentEntry={this.state.channelJSON[attrKey]._text} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey} />)
+        } else {
+          var label = attrKey + ": ";
+
+          attributeLines.push(<EditableLine key={attrKey + "_component_key"} label={label} currentEntry={this.state.channelJSON[attrKey]._text || " "} updateFeedJSON={this.updateChannelJSON} fieldKey={attrKey} />)
+        }
       } else {
         if (!Array.isArray(this.state.channelJSON[attrKey])) {
           var newChannelJSON = this.state.channelJSON;
@@ -187,7 +217,7 @@ class ItemList extends React.Component {
   
 
   addNewItem() {
-    console.log("Add new item clicked for : " + this.state.itemArray[0]);
+    //console.log("Add new item clicked for : " + this.state.itemArray[0]);
     var newBlankItem = {
       'description': {
         '_cdata': ''
@@ -233,7 +263,7 @@ class ItemList extends React.Component {
   render() {
     var itemAttributesArray = [];
     for (var item in this.state.itemArray) {
-      console.log("Item array: " + this.state.itemArray);
+      //console.log("Item array: " + this.state.itemArray);
       //console.log("pushing to the item render array: " + this.state.itemArray[item]);
       itemAttributesArray.push(<ItemAttributes itemJSON={this.state.itemArray[item]}/>);
     }
@@ -287,7 +317,7 @@ class ItemAttributes extends React.Component {
     var attributeLines = [];
 
     for (var attrKey in this.state.itemJSON) {
-      console.log("Item attribute key: " + attrKey);
+      //console.log("Item attribute key: " + attrKey);
 
       if (attrKey === 'enclosure') {
         var label = attrKey + " - ";
@@ -305,7 +335,7 @@ class ItemAttributes extends React.Component {
 
       } else {
         var label = attrKey + ": ";
-        console.log("current state: " + this.state.itemJSON);
+        //console.log("current state: " + this.state.itemJSON);
         attributeLines.push(<EditableLine key={attrKey + "_item_key_" + this.state.itemJSON.guid._text} label={label} currentEntry={this.state.itemJSON[attrKey]._text || this.state.itemJSON[attrKey]._cdata || " "} updateFeedJSON={this.updateItemJSON} fieldKey={attrKey} />)
       }
       
@@ -344,6 +374,7 @@ class FeedBuilder extends React.Component {
     this.handleFeedSubmit = this.handleFeedSubmit.bind(this);
     this.handleFeedFormChange = this.handleFeedFormChange.bind(this);
     this.handleXMLEncodeSubmit = this.handleXMLEncodeSubmit.bind(this);
+    this.createNewFeed = this.createNewFeed.bind(this);
   };
 
  
@@ -420,11 +451,126 @@ class FeedBuilder extends React.Component {
     }).catch(() => console.error('Error in fetch the /encode_feed/ route'))
   }
 
+  createNewFeed() {
+    //console.log("createNewFeed() clicked!");
+
+    var blankFeedJSON = {
+      '_declaration': {
+        '_attributes': {
+          'encoding': 'UTF-8',
+          'version': '1.0'
+        }
+      },
+      'rss': {
+        '_attributes': {
+          'version': '2.0',
+          'xmlns:itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd'
+        },
+        'channel': {
+          'copyright': {
+            '_text': ''
+          },
+          'description': {
+            '_text': ''
+          },
+          'item': [
+            {
+              'description': {
+                '_cdata': ''
+              },
+              'enclosure': {
+                '_attributes': {
+                  'length': '',
+                  'type': '',
+                  'url': ''
+                }
+              },
+              'guid': {
+                '_attributes': {
+                  'isPermalink': ''
+                },
+                '_text': ''
+              },
+              'itunes:author': {
+                '_text': ''
+              },
+              'itunes:duration': {
+                '_text': ''
+              },
+              'itunes:subtitle': {
+                '_text': ''
+              },
+              'itunes:summary': {
+                '_cdata': ''
+              },
+              'pubDate': {
+                '_text': ''
+              },
+              'title': {
+                '_text': ''
+              }
+            }
+          ],
+          'itunes:author': {
+            '_text': ''
+          },
+          'itunes:category': [
+            {
+              '_attributes': {
+                '_text': ''
+              }
+            }
+          ],
+          'itunes:explicit': {
+            '_text': ''
+          },
+          'itunes:image': {
+            '_attributes': {
+              'href': ''
+            }
+          },
+          'itunes:owner': {
+            'itunes:email': {
+              '_text': ''
+            },
+            'itunes:name': {
+              '_text': ''
+            }
+          },
+          'itunes:subtitle': {
+            '_text': ''
+          },
+          'itunes:summary': {
+            '_text': ''
+          },
+          'language': {
+            '_text': 'en-us'
+          },
+          'link': {
+            '_text': ''
+          },
+          'title': {
+            '_text': ''
+          }
+        }
+      }
+    }
+
+    this.setState({
+        feedUrl: '',
+        errorMessage: '',
+        isError: false,
+        feedJSON: blankFeedJSON,
+    });
+  }
+
   render() {
 
     return (
       <div>
         <FeedUrlForm handleFeedSubmit={this.handleFeedSubmit} handleFeedFormChange={this.handleFeedFormChange}/>
+
+        <button type="button" onClick={this.createNewFeed}>Create new blank feed</button>
       
         <FeedError isError={this.state.isError} errorMessage={this.state.errorMessage} />
         
