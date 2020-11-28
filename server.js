@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const port = process.env.PORT || 5000;
+const path = require('path');
 var fetch = require('node-fetch');
 let Parser = require('rss-parser');
 let parser = new Parser();
@@ -8,12 +9,18 @@ let xml_js = require('xml-js');
 
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, 'client/build')));
+
 // console.log that your server is up and running
 app.listen(port, () => console.log(`Listening on port ${port}`));
 
 // create a GET route
 app.get('/express_backend', (req, res) => {
   res.send({ express: 'YOUR EXPRESS BACKEND IS CONNECTED TO REACT' });
+});
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 // given a feed url, return the feed encoded as JSON or an error
