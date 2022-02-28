@@ -7,7 +7,7 @@ let Parser = require('rss-parser');
 let parser = new Parser();
 let xml_js = require('xml-js');
 
-app.use(express.json());
+app.use(express.json({limit: '25mb'}));
 
 app.use(express.static(path.join(__dirname, 'client/build')));
 

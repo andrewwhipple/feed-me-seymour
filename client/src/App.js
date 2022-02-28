@@ -1,7 +1,12 @@
 import React from 'react';
 import logo from './logo.svg';
 import './App.css';
-import fetch from 'node-fetch';
+
+
+// React Bootstrap imports
+import Container from 'react-bootstrap/Container';
+import Row from 'react-bootstrap/Row';
+import Col from 'react-bootstrap/Col';
 
 /*
 Overall hierarchy is a FeedBuilder, composed of a FeedUrlForm (to submit a url of a feed), FeedError (to display any errors that may arise), and a ChannelAttributes
@@ -574,11 +579,26 @@ class FeedBuilder extends React.Component {
 
     return (
       <div>
-        <FeedUrlForm handleFeedSubmit={this.handleFeedSubmit} handleFeedFormChange={this.handleFeedFormChange}/>
+        <Container>
+          <Row>
+            <Col>
+              <FeedUrlForm handleFeedSubmit={this.handleFeedSubmit} handleFeedFormChange={this.handleFeedFormChange}/>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <button type="button" onClick={this.createNewFeed}>Create new blank feed</button>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <FeedError isError={this.state.isError} errorMessage={this.state.errorMessage} />
+            </Col>
+          </Row>
+        </Container>
+        
 
-        <button type="button" onClick={this.createNewFeed}>Create new blank feed</button>
       
-        <FeedError isError={this.state.isError} errorMessage={this.state.errorMessage} />
         
         {this.state.feedJSON.rss && this.state.feedJSON.rss.channel &&
           <div>
@@ -600,7 +620,10 @@ function App() {
   
   
   return (
-    <FeedBuilder />
+    <Container>
+      <FeedBuilder />
+    </Container>
+    
    
   );
 }
